@@ -36,11 +36,21 @@ document.addEventListener('DOMContentLoaded', () => {
         games.forEach(game => {
             const gameCard = document.createElement('div');
             gameCard.className = 'game-card';
+
+            // Limita a descrição na página principal
+            const shortDescription = game.description.length > 100
+                ? game.description.substring(0, 100) + '...'
+                : game.description;
+
             gameCard.innerHTML = `
-                <h2>${game.title}</h2>
-                <p class="genre">${game.genre}</p>
-                <p>${game.description}</p>
-                <a href="${game.downloadLink}" class="download-btn" target="_blank" rel="noopener noreferrer">Download</a>
+                <a href="game.html?id=${game.id}">
+                    <img src="${game.coverImage}" alt="Capa do jogo ${game.title}" class="cover-image">
+                    <div class="game-card-content">
+                        <h2>${game.title}</h2>
+                        <p class="genre">${game.genre}</p>
+                        <p>${shortDescription}</p>
+                    </div>
+                </a>
             `;
             gameListContainer.appendChild(gameCard);
         });

@@ -1,37 +1,44 @@
 document.getElementById('add-game-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    const title = document.getElementById('title').value;
-    const genre = document.getElementById('genre').value;
-    const description = document.getElementById('description').value;
-    const downloadLink = document.getElementById('downloadLink').value;
+    const form = event.target;
+    const formData = new FormData();
 
-    const newGame = {
-        title: title,
-        genre: genre,
-        description: description,
-        downloadLink: downloadLink
-    };
+    // Adiciona os campos de texto ao FormData
+    formData.append('title', form.querySelector('#title').value);
+    formData.append('genre', form.querySelector('#genre').value);
+    formData.append('description', form.querySelector('#description').value);
+    formData.append('downloadLink', form.querySelector('#downloadLink').value);
 
-    // Envia os dados para o backend
+    // Adiciona a imagem de capa
+    const coverImage = form.querySelector('#coverImage').files[0];
+    if (coverImage) {
+        formData.append('coverImage', coverImage);
+    }
+
+    // Adiciona as imagens da galeria
+    const gameImages = form.querySelector('#gameImages').files;
+    for (let i = 0; i < gameImages.length; i++) {
+        formData.append('gameImages', gameImages[i]);
+    }
+
+    // Envia os dados para o backend como FormData
     fetch('/api/games', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newGame),
+        // Não defina o 'Content-Type' aqui. O navegador fará isso automaticamente
+        // com o boundary correto para multipart/form-data.
+        body: formData,
     })
     .then(response => {
         if (!response.ok) {
-            // Se a resposta não for OK, lança um erro para ser pego pelo .catch()
-            return response.text().then(text => { throw new Error(text) });
+            return response.text().then(text => { throw new Error(text || 'Ocorreu um erro no servidor.') });
         }
         return response.json();
     })
     .then(data => {
         console.log('Jogo adicionado com sucesso:', data);
         alert(`Jogo "${data.title}" adicionado com sucesso!`);
-        document.getElementById('add-game-form').reset();
+        form.reset();
     })
     .catch((error) => {
         console.error('Erro ao adicionar jogo:', error);

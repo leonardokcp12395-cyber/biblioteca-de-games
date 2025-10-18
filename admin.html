@@ -28,6 +28,14 @@
                 <label for="downloadLink">Link de Download:</label>
                 <input type="url" id="downloadLink" required>
             </div>
+            <div class="form-group">
+                <label for="coverImage">Imagem de Capa (obrigatório):</label>
+                <input type="file" id="coverImage" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="gameImages">Imagens da Galeria (opcional, até 8):</label>
+                <input type="file" id="gameImages" accept="image/*" multiple>
+            </div>
             <button type="submit">Adicionar Jogo</button>
         </form>
     </main>

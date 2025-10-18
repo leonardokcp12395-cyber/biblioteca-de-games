@@ -11,6 +11,9 @@ server.log
 dist
 build
 
+# Uploads
+uploads/
+
 # Other
 .DS_Store
 package-lock.json

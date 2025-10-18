@@ -20,6 +20,7 @@
   "homepage": "https://github.com/leonardokcp12395-cyber/biblioteca-de-games#readme",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
   }
 }
