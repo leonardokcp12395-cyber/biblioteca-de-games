@@ -10,8 +10,17 @@
     <header>
         <h1>Biblioteca de Games</h1>
     </header>
-    <main id="game-list">
-        <!-- Os jogos serão inseridos aqui via JavaScript -->
+    <main>
+        <div class="filters">
+            <input type="search" id="search-input" placeholder="Pesquisar por título...">
+            <select id="genre-filter">
+                <option value="">Todos os Gêneros</option>
+                <!-- Opções de gênero serão preenchidas dinamicamente -->
+            </select>
+        </div>
+        <div id="game-list">
+            <!-- Os jogos serão inseridos aqui via JavaScript -->
+        </div>
     </main>
     <script src="script.js"></script>
 </body>

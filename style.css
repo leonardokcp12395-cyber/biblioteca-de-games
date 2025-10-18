@@ -73,6 +73,25 @@ button[type="submit"]:hover {
     background: #218838;
 }
 
+/* Filtros */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.filters input[type="search"],
+.filters select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
 /* Lista de Jogos */
 #game-list {
     display: grid;
