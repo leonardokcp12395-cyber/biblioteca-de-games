@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para carregar e exibir os jogos
     const loadGames = () => {
+        gameListContainer.innerHTML = '<div class="loader"></div>'; // Mostra o loader
         fetch('/api/games') // Atualizado para usar a API
             .then(response => {
                 if (!response.ok) {

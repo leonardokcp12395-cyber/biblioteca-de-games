@@ -27,7 +27,12 @@ const upload = multer({ storage: storage });
 
 const GAMES_FILE = path.join(__dirname, 'games.json');
 
+const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middleware/auth');
+
 // --- Rotas da API ---
+
+app.use('/api/auth', authRoutes);
 
 // Rota para obter todos os jogos
 app.get('/api/games', (req, res) => {
@@ -122,7 +127,8 @@ app.post('/api/games', upload.fields([
         downloadLink,
         coverImage: coverImagePath,
         gameImages: gameImagesPaths,
-        comments: [] // Inicializa com uma lista de comentários vazia
+        comments: [], // Inicializa com uma lista de comentários vazia
+        ratings: [] // Inicializa com uma lista de avaliações vazia
     };
 
     fs.readFile(GAMES_FILE, 'utf8', (err, data) => {
@@ -142,6 +148,75 @@ app.post('/api/games', upload.fields([
             res.status(201).json(newGame);
         });
     });
+});
+
+// Rota para avaliar um jogo
+app.post('/api/games/:id/rate', authMiddleware, (req, res) => {
+    const gameId = parseInt(req.params.id, 10);
+    const { rating } = req.body;
+    const userId = req.user.userId;
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).send('A avaliação deve ser um número entre 1 e 5.');
+    }
+
+    let games = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
+    const gameIndex = games.findIndex(g => g.id === gameId);
+
+    if (gameIndex === -1) {
+        return res.status(404).send('Jogo não encontrado.');
+    }
+
+    const game = games[gameIndex];
+    // Remove qualquer avaliação anterior do mesmo usuário
+    const otherRatings = game.ratings.filter(r => r.userId !== userId);
+    const newRating = { userId, rating };
+    game.ratings = [...otherRatings, newRating];
+
+    fs.writeFileSync(GAMES_FILE, JSON.stringify(games, null, 2));
+
+    // Calcula a nova média de avaliação
+    const totalRatings = game.ratings.reduce((acc, r) => acc + r.rating, 0);
+    const averageRating = totalRatings / game.ratings.length;
+
+    res.json({ averageRating: averageRating.toFixed(1) });
+});
+
+// Rota para excluir um jogo
+app.delete('/api/games/:id', authMiddleware, (req, res) => {
+    const gameId = parseInt(req.params.id, 10);
+
+    let games = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
+    const updatedGames = games.filter(g => g.id !== gameId);
+
+    if (games.length === updatedGames.length) {
+        return res.status(404).send('Jogo não encontrado para exclusão.');
+    }
+
+    fs.writeFileSync(GAMES_FILE, JSON.stringify(updatedGames, null, 2));
+    res.status(200).send('Jogo excluído com sucesso.');
+});
+
+// Rota para atualizar um jogo (apenas texto)
+app.put('/api/games/:id', authMiddleware, (req, res) => {
+    const gameId = parseInt(req.params.id, 10);
+    const { title, genre, description, downloadLink } = req.body;
+
+    let games = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
+    const gameIndex = games.findIndex(g => g.id === gameId);
+
+    if (gameIndex === -1) {
+        return res.status(404).send('Jogo não encontrado para atualização.');
+    }
+
+    // Atualiza os campos
+    games[gameIndex].title = title;
+    games[gameIndex].genre = genre;
+    games[gameIndex].description = description;
+    games[gameIndex].downloadLink = downloadLink;
+
+    fs.writeFileSync(GAMES_FILE, JSON.stringify(games, null, 2));
+    res.status(200).json(games[gameIndex]);
 });
 
 

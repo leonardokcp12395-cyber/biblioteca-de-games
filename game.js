@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Mostra o loader enquanto busca os dados
+    gameDetailContainer.innerHTML = '<div class="loader"></div>';
+
     // Busca os detalhes do jogo na API
     fetch(`/api/games/${gameId}`)
         .then(response => {
@@ -45,11 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Monta o HTML final para o container de detalhes
+        const totalRatings = game.ratings.reduce((acc, r) => acc + r.rating, 0);
+        const averageRating = game.ratings.length > 0 ? (totalRatings / game.ratings.length).toFixed(1) : "N/A";
+
         gameDetailContainer.innerHTML = `
             <div class="game-header">
                 <img src="${game.coverImage}" alt="Capa do jogo ${game.title}" class="cover">
                 <div class="info">
                     <h1>${game.title}</h1>
+                    <div class="rating-section">
+                        <span class="average-rating">⭐ ${averageRating}</span>
+                        <div class="star-rating" id="user-rating">
+                            ${[...Array(5)].map((_, i) => `<span class="star" data-value="${i + 1}">☆</span>`).join('')}
+                        </div>
+                    </div>
                     <p class="genre">${game.genre}</p>
                     <p>${game.description}</p>
                     <a href="${game.downloadLink}" class="download-btn" target="_blank" rel="noopener noreferrer">Download</a>
@@ -76,6 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             handleCommentSubmit(gameId, commentsList);
         });
+
+        // Adiciona listeners para as estrelas de avaliação
+        const stars = document.querySelectorAll('.star-rating .star');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = parseInt(star.dataset.value, 10);
+                handleRatingSubmit(gameId, rating);
+            });
+        });
+
+        // Adiciona listeners para o lightbox da galeria
+        setupLightbox();
     };
 
     // Função para exibir os comentários
@@ -93,6 +117,66 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Função para lidar com o envio de um novo comentário
+    // Função para lidar com o envio de uma nova avaliação
+    const handleRatingSubmit = (gameId, rating) => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('Você precisa estar logado para avaliar um jogo.');
+            return;
+        }
+
+        fetch(`/api/games/${gameId}/rate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ rating: rating })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Falha ao enviar avaliação.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('Obrigado pela sua avaliação!');
+            // Atualiza a média de avaliação na página
+            document.querySelector('.average-rating').textContent = `⭐ ${data.averageRating}`;
+        })
+        .catch(error => {
+            console.error('Erro ao avaliar:', error);
+            alert(error.message);
+        });
+    };
+
+    // Função para configurar o lightbox
+    const setupLightbox = () => {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const closeBtn = lightbox.querySelector('.close-btn');
+        const galleryImages = document.querySelectorAll('.gallery-images img');
+
+        galleryImages.forEach(img => {
+            img.addEventListener('click', () => {
+                lightbox.style.display = 'flex';
+                lightboxImg.src = img.src;
+            });
+        });
+
+        const closeLightbox = () => {
+            lightbox.style.display = 'none';
+        }
+
+        closeBtn.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', (e) => {
+            // Fecha se clicar fora da imagem
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+    };
+
     const handleCommentSubmit = (gameId, commentsListContainer) => {
         const textArea = document.getElementById('comment-text');
         const text = textArea.value;
