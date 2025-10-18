@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Painel do Admin - Adicionar Jogo</h1>
+    </header>
+    <main>
+        <form id="add-game-form">
+            <div class="form-group">
+                <label for="title">Título:</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="form-group">
+                <label for="genre">Gênero:</label>
+                <input type="text" id="genre" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Descrição:</label>
+                <textarea id="description" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="downloadLink">Link de Download:</label>
+                <input type="url" id="downloadLink" required>
+            </div>
+            <button type="submit">Adicionar Jogo</button>
+        </form>
+    </main>
+    <script src="admin.js"></script>
+</body>
+</html>
