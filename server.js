@@ -7,6 +7,12 @@ const multer = require('multer');
 const app = express();
 const PORT = 3000;
 
+// Garante que o diretório de uploads exista
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR);
+}
+
 // Middleware
 app.use(cors()); // Permite requisições de diferentes origens
 app.use(express.json()); // Analisa o corpo das requisições como JSON

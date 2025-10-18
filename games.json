@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": 1760808872263,
+    "title": "Jogo Final Verificado",
+    "genre": "Verificação",
+    "description": "Este jogo foi adicionado com sucesso.",
+    "downloadLink": "http://example.com",
+    "coverImage": "uploads/1760808872261-final_test_cover.jpg",
+    "gameImages": [],
+    "comments": [],
+    "ratings": []
+  }
+]

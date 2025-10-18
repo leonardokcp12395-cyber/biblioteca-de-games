@@ -86,7 +86,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleAddSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(addGameForm);
+
+        // Cria o FormData e anexa os arquivos manualmente
+        const formData = new FormData();
+        formData.append('title', addGameForm.querySelector('#title').value);
+        formData.append('genre', addGameForm.querySelector('#genre').value);
+        formData.append('description', addGameForm.querySelector('#description').value);
+        formData.append('downloadLink', addGameForm.querySelector('#downloadLink').value);
+
+        const coverImage = addGameForm.querySelector('#coverImage').files[0];
+        if (coverImage) {
+            formData.append('coverImage', coverImage);
+        }
+
+        const gameImages = addGameForm.querySelector('#gameImages').files;
+        for (let i = 0; i < gameImages.length; i++) {
+            formData.append('gameImages', gameImages[i]);
+        }
 
         try {
             const response = await fetch('/api/games', {
