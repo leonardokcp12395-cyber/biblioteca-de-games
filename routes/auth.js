@@ -33,7 +33,12 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { id: Date.now(), username, password: hashedPassword };
+    const newUser = {
+        id: Date.now(),
+        username,
+        password: hashedPassword,
+        favorites: [] // Adiciona o campo de favoritos no registro
+    };
 
     users.push(newUser);
     writeUsers(users);

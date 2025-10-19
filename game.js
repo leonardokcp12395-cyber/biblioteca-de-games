@@ -55,7 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="game-header">
                 <img src="${game.coverImage}" alt="Capa do jogo ${game.title}" class="cover">
                 <div class="info">
-                    <h1>${game.title}</h1>
+                    <div style="display: flex; align-items: flex-start;">
+                        <h1 style="flex-grow: 1;">${game.title}</h1>
+                        <button id="favorite-btn" class="favorite-btn">❤</button>
+                    </div>
                     <div class="rating-section">
                         <span class="average-rating">⭐ ${averageRating}</span>
                         <div class="star-rating" id="user-rating">
@@ -100,6 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Adiciona listeners para o lightbox da galeria
         setupLightbox();
+        // Configura o botão de favorito
+        setupFavoriteButton(game.id);
     };
 
     // Função para exibir os comentários
@@ -174,6 +179,39 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === lightbox) {
                 closeLightbox();
             }
+        });
+    };
+
+    // Função para configurar o botão de favorito
+    const setupFavoriteButton = (gameId) => {
+        const favBtn = document.getElementById('favorite-btn');
+        const token = localStorage.getItem('authToken');
+
+        if (!token) {
+            favBtn.style.display = 'none'; // Esconde o botão se não estiver logado
+            return;
+        }
+
+        // Verifica o estado inicial
+        fetch('/api/users/favorites/ids', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(res => res.json())
+            .then(data => {
+                if (data.favorites.includes(gameId)) {
+                    favBtn.classList.add('favorited');
+                }
+            });
+
+        // Adiciona listener de clique
+        favBtn.addEventListener('click', () => {
+            fetch(`/api/users/favorites/toggle/${gameId}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                favBtn.classList.toggle('favorited', data.includes(gameId));
+            })
+            .catch(err => console.error("Erro ao favoritar:", err));
         });
     };
 

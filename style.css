@@ -381,6 +381,25 @@ header .back-link {
     font-weight: bold;
 }
 
+/* --- Botão de Favorito --- */
+.favorite-btn {
+    background: none;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 20px;
+    color: #ddd;
+    transition: all 0.2s;
+    margin-left: auto; /* Alinha à direita */
+}
+
+.favorite-btn.favorited {
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
 /* --- Lightbox da Galeria --- */
 .lightbox {
     display: none; /* Oculto por padrão */
@@ -424,4 +443,34 @@ header .back-link {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* --- Controles de Paginação --- */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    gap: 5px;
+}
+
+.pagination-controls button,
+.pagination-controls .page-number {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.pagination-controls button:disabled {
+    cursor: not-allowed;
+    background-color: #f9f9f9;
+    color: #ccc;
+}
+
+.pagination-controls .page-number.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
 }

@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (token) {
         // Usuário está logado
         authLinks.innerHTML = `
+            <a href="favorites.html" style="color: white; text-decoration: none;">Meus Favoritos</a>
             <a href="admin.html" style="color: white; text-decoration: none;">Painel Admin</a>
             <button id="logout-btn" style="background: none; border: none; color: white; cursor: pointer; font-size: 1em;">Logout</button>
         `;

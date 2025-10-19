@@ -2,33 +2,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameListContainer = document.getElementById('game-list');
     const searchInput = document.getElementById('search-input');
     const genreFilter = document.getElementById('genre-filter');
+    const paginationControls = document.getElementById('pagination-controls');
 
-    let allGames = []; // Armazena todos os jogos para evitar múltiplas chamadas de API
+    let currentPage = 1;
+    let currentSearch = '';
+    let currentGenre = '';
 
-    // Função para carregar e exibir os jogos
-    const loadGames = () => {
-        gameListContainer.innerHTML = '<div class="loader"></div>'; // Mostra o loader
-        fetch('/api/games') // Atualizado para usar a API
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro de rede ao carregar jogos da API.');
-                }
-                return response.json();
-            })
-            .then(games => {
-                allGames = games;
-                populateGenreFilter(games);
-                displayGames(games);
+    // Função principal para buscar e renderizar jogos
+    const loadGames = (page = 1) => {
+        currentPage = page;
+        currentSearch = searchInput.value;
+        currentGenre = genreFilter.value;
+
+        gameListContainer.innerHTML = '<div class="loader"></div>';
+
+        const url = new URL('/api/games', window.location.origin);
+        url.searchParams.append('page', currentPage);
+        url.searchParams.append('limit', 12);
+        if (currentSearch) url.searchParams.append('search', currentSearch);
+        if (currentGenre) url.searchParams.append('genre', currentGenre);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                displayGames(data.games);
+                renderPaginationControls(data.totalPages, data.currentPage);
             })
             .catch(error => {
                 console.error('Erro ao carregar os jogos:', error);
-                gameListContainer.innerHTML = '<p>Não foi possível carregar a lista de jogos. Tente novamente mais tarde.</p>';
+                gameListContainer.innerHTML = '<p>Não foi possível carregar a lista de jogos.</p>';
             });
     };
 
-    // Função para renderizar os jogos na página
+    // Função para renderizar os cards de jogo
     const displayGames = (games) => {
-        if (!games || games.length === 0) {
+        if (games.length === 0) {
             gameListContainer.innerHTML = '<p>Nenhum jogo encontrado com os filtros atuais.</p>';
             return;
         }
@@ -37,11 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         games.forEach(game => {
             const gameCard = document.createElement('div');
             gameCard.className = 'game-card';
-
-            // Limita a descrição na página principal
-            const shortDescription = game.description.length > 100
-                ? game.description.substring(0, 100) + '...'
-                : game.description;
+            const shortDescription = game.description.length > 100 ? game.description.substring(0, 100) + '...' : game.description;
 
             gameCard.innerHTML = `
                 <a href="game.html?id=${game.id}">
@@ -57,45 +61,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Função para preencher o filtro de gênero dinamicamente
-    const populateGenreFilter = (games) => {
-        const genres = [...new Set(games.map(game => game.genre))]; // Pega gêneros únicos
-        genres.sort().forEach(genre => {
-            const option = document.createElement('option');
-            option.value = genre;
-            option.textContent = genre;
-            genreFilter.appendChild(option);
-        });
-    };
+    // Função para renderizar os controles de paginação
+    const renderPaginationControls = (totalPages, page) => {
+        paginationControls.innerHTML = '';
+        if (totalPages <= 1) return;
 
-    // Função para filtrar os jogos
-    const filterGames = () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedGenre = genreFilter.value;
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Anterior';
+        prevButton.disabled = page === 1;
+        prevButton.addEventListener('click', () => loadGames(page - 1));
+        paginationControls.appendChild(prevButton);
 
-        let filteredGames = allGames;
-
-        // Filtra por termo de pesquisa
-        if (searchTerm) {
-            filteredGames = filteredGames.filter(game =>
-                game.title.toLowerCase().includes(searchTerm)
-            );
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.className = 'page-number' + (i === page ? ' active' : '');
+            pageButton.addEventListener('click', () => loadGames(i));
+            paginationControls.appendChild(pageButton);
         }
 
-        // Filtra por gênero
-        if (selectedGenre) {
-            filteredGames = filteredGames.filter(game =>
-                game.genre === selectedGenre
-            );
-        }
-
-        displayGames(filteredGames);
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Próximo';
+        nextButton.disabled = page === totalPages;
+        nextButton.addEventListener('click', () => loadGames(page + 1));
+        paginationControls.appendChild(nextButton);
     };
 
-    // Adiciona listeners de evento para os filtros
-    searchInput.addEventListener('input', filterGames);
-    genreFilter.addEventListener('change', filterGames);
+    // Função para preencher o filtro de gênero (agora pega todos os jogos para listar os gêneros)
+    const populateGenreFilter = () => {
+        fetch('/api/games?limit=1000') // Pega todos para listar os gêneros
+            .then(res => res.json())
+            .then(data => {
+                const genres = [...new Set(data.games.map(game => game.genre))];
+                genres.sort().forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = genre;
+                    genreFilter.appendChild(option);
+                });
+            });
+    }
 
-    // Carrega os jogos quando a página é aberta
-    loadGames();
+    // Listeners para os filtros
+    searchInput.addEventListener('input', () => loadGames(1));
+    genreFilter.addEventListener('change', () => loadGames(1));
+
+    // Carga inicial
+    loadGames(1);
+    populateGenreFilter();
 });

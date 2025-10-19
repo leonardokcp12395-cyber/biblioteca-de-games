@@ -40,14 +40,39 @@ const authMiddleware = require('./middleware/auth');
 
 app.use('/api/auth', authRoutes);
 
-// Rota para obter todos os jogos
+// Rota para obter todos os jogos com paginação e filtros
 app.get('/api/games', (req, res) => {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 12;
+    const { search, genre } = req.query;
+
     fs.readFile(GAMES_FILE, 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Erro ao ler o arquivo de jogos.');
         }
-        res.json(JSON.parse(data));
+
+        let games = JSON.parse(data);
+
+        // Aplica filtros
+        if (search) {
+            games = games.filter(g => g.title.toLowerCase().includes(search.toLowerCase()));
+        }
+        if (genre) {
+            games = games.filter(g => g.genre === genre);
+        }
+
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const paginatedGames = games.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(games.length / limit);
+
+        res.json({
+            games: paginatedGames,
+            totalPages: totalPages,
+            currentPage: page
+        });
     });
 });
 
@@ -223,6 +248,66 @@ app.put('/api/games/:id', authMiddleware, (req, res) => {
 
     fs.writeFileSync(GAMES_FILE, JSON.stringify(games, null, 2));
     res.status(200).json(games[gameIndex]);
+});
+
+// --- Rotas de Favoritos ---
+
+// Rota para alternar um jogo como favorito
+app.post('/api/users/favorites/toggle/:gameId', authMiddleware, (req, res) => {
+    const gameId = parseInt(req.params.gameId, 10);
+    const userId = req.user.userId;
+
+    let users = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json'), 'utf8'));
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        return res.status(404).send('Usuário não encontrado.');
+    }
+
+    const user = users[userIndex];
+    const favoriteIndex = user.favorites.indexOf(gameId);
+
+    if (favoriteIndex > -1) {
+        // Remove dos favoritos
+        user.favorites.splice(favoriteIndex, 1);
+    } else {
+        // Adiciona aos favoritos
+        user.favorites.push(gameId);
+    }
+
+    fs.writeFileSync(path.join(__dirname, 'users.json'), JSON.stringify(users, null, 2));
+    res.status(200).json(user.favorites);
+});
+
+// Rota para obter os jogos favoritos de um usuário
+app.get('/api/users/favorites', authMiddleware, (req, res) => {
+    const userId = req.user.userId;
+
+    const users = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json'), 'utf8'));
+    const user = users.find(u => u.id === userId);
+
+    if (!user) {
+        return res.status(404).send('Usuário não encontrado.');
+    }
+
+    const allGames = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
+    const favoriteGames = allGames.filter(game => user.favorites.includes(game.id));
+
+    res.json(favoriteGames);
+});
+
+// Rota para obter os IDs dos jogos favoritos de um usuário
+app.get('/api/users/favorites/ids', authMiddleware, (req, res) => {
+    const userId = req.user.userId;
+
+    const users = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json'), 'utf8'));
+    const user = users.find(u => u.id === userId);
+
+    if (!user) {
+        return res.status(404).send('Usuário não encontrado.');
+    }
+
+    res.json({ favorites: user.favorites || [] });
 });
 
 
