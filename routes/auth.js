@@ -1,64 +1,88 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const path = require('path');
+const User = require('../models/user.schema');
 
 const router = express.Router();
-const USERS_FILE = path.join(__dirname, '../users.json');
-const JWT_SECRET = 'your_super_secret_key'; // Em produção, use variáveis de ambiente!
 
-// Função para ler usuários do arquivo
-const readUsers = () => {
-    const data = fs.readFileSync(USERS_FILE, 'utf8');
-    return JSON.parse(data);
-};
-
-// Função para escrever usuários no arquivo
-const writeUsers = (users) => {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-};
-
-// Rota de Registro
+// --- Rota de Registro ---
 router.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    try {
+        const { username, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).send('Nome de usuário e senha são obrigatórios.');
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Nome de usuário e senha são obrigatórios.' });
+        }
+
+        // Verifica se o usuário já existe
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Este nome de usuário já está em uso.' });
+        }
+
+        // Criptografa a senha
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Cria o novo usuário
+        const newUser = new User({
+            username,
+            password: hashedPassword,
+        });
+
+        await newUser.save();
+
+        res.status(201).json({ message: 'Usuário registrado com sucesso!' });
+
+    } catch (error) {
+        console.error('Erro no registro:', error);
+        res.status(500).json({ message: 'Erro interno do servidor.' });
     }
-
-    const users = readUsers();
-    if (users.find(u => u.username === username)) {
-        return res.status(400).send('Nome de usuário já existe.');
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = {
-        id: Date.now(),
-        username,
-        password: hashedPassword,
-        favorites: [] // Adiciona o campo de favoritos no registro
-    };
-
-    users.push(newUser);
-    writeUsers(users);
-
-    res.status(201).send('Usuário registrado com sucesso.');
 });
 
-// Rota de Login
+// --- Rota de Login ---
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    try {
+        const { username, password } = req.body;
 
-    const users = readUsers();
-    const user = users.find(u => u.username === username);
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Nome de usuário e senha são obrigatórios.' });
+        }
 
-    if (!user || !await bcrypt.compare(password, user.password)) {
-        return res.status(401).send('Credenciais inválidas.');
+        // Encontra o usuário
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(400).json({ message: 'Credenciais inválidas.' });
+        }
+
+        // Compara a senha
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Credenciais inválidas.' });
+        }
+
+        // Cria e retorna o token JWT
+        const payload = {
+            user: {
+                id: user.id,
+                username: user.username
+            }
+        };
+
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }, // Token expira em 7 dias
+            (err, token) => {
+                if (err) throw err;
+                res.json({ token, userId: user.id, username: user.username });
+            }
+        );
+
+    } catch (error) {
+        console.error('Erro no login:', error);
+        res.status(500).json({ message: 'Erro interno do servidor.' });
     }
-
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
 });
 
 module.exports = router;

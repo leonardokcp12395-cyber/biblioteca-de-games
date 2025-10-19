@@ -1,21 +1,30 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'your_super_secret_key'; // A mesma chave secreta usada em routes/auth.js
+const User = require('../models/user.schema');
 
-const authMiddleware = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Formato "Bearer TOKEN"
+module.exports = async function (req, res, next) {
+    // Pega o token do header
+    const token = req.header('x-auth-token');
 
+    // Se não houver token
     if (!token) {
-        return res.status(401).send('Acesso negado. Nenhum token fornecido.');
+        return res.status(401).json({ message: 'Acesso negado. Nenhum token fornecido.' });
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded; // Adiciona os dados do usuário (ex: { userId: 123 }) ao objeto da requisição
-        next();
-    } catch (ex) {
-        res.status(400).send('Token inválido.');
+        // Verifica o token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Adiciona o usuário do payload à requisição
+        req.user = decoded.user;
+
+        // Confirma que o usuário ainda existe no banco de dados
+        const userExists = await User.findById(req.user.id);
+        if (!userExists) {
+            return res.status(401).json({ message: 'Token inválido - usuário não encontrado.' });
+        }
+
+        next(); // Passa para a próxima função de middleware/rota
+    } catch (err) {
+        res.status(401).json({ message: 'Token inválido.' });
     }
 };
-
-module.exports = authMiddleware;

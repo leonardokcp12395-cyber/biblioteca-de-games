@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken'); // Correct key
     const onAdminPage = window.location.pathname.endsWith('admin.html') || window.location.pathname.endsWith('edit-game.html');
 
     if (!token && onAdminPage) {
         window.location.href = 'login.html';
-        return; // Para a execução do script se não estiver logado
+        return; // Stop script execution if not logged in
     }
 
     // --- Lógica para Adicionar, Editar, Listar e Excluir ---
