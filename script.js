@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const shortDescription = game.description.length > 100 ? game.description.substring(0, 100) + '...' : game.description;
 
             gameCard.innerHTML = `
-                <a href="game.html?id=${game.id}">
+                <a href="game.html?id=${game._id}">
                     <img src="${game.coverImage}" alt="Capa do jogo ${game.title}" class="cover-image">
                     <div class="game-card-content">
                         <h2>${game.title}</h2>

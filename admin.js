@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><img src="${game.coverImage}" alt="Capa de ${game.title}"></td>
                     <td>${game.title}</td>
                     <td class="actions">
-                        <a href="edit-game.html?id=${game.id}" class="edit-btn">Editar</a>
-                        <button class="delete-btn" data-id="${game.id}">Excluir</button>
+                        <a href="edit-game.html?id=${game._id}" class="edit-btn">Editar</a>
+                        <button class="delete-btn" data-id="${game._id}">Excluir</button>
                     </td>
                 `;
                 gamesListBody.appendChild(row);
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`/api/games/${id}`);
             const game = await response.json();
-            document.getElementById('gameId').value = game.id;
+            document.getElementById('gameId').value = game._id;
             document.getElementById('title').value = game.title;
             document.getElementById('genre').value = game.genre;
             document.getElementById('description').value = game.description;

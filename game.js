@@ -10,13 +10,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    console.log(`[DEBUG] ID do jogo pego da URL: ${gameId}`);
     gameDetailContainer.innerHTML = '<div class="loader"></div>';
 
+    console.log(`[DEBUG] Fazendo fetch para /api/games/${gameId}`);
     fetch(`/api/games/${gameId}`)
-        .then(response => response.ok ? response.json() : Promise.reject('Jogo não encontrado.'))
-        .then(game => displayGameDetails(game))
+        .then(response => {
+            console.log(`[DEBUG] Resposta do fetch recebida. Status: ${response.status}`);
+            if (!response.ok) {
+                return response.text().then(text => Promise.reject(`Erro ${response.status}: ${text}`));
+            }
+            return response.json();
+        })
+        .then(game => {
+            console.log('[DEBUG] Jogo recebido com sucesso:', game);
+            displayGameDetails(game);
+        })
         .catch(error => {
-            console.error('Erro ao carregar detalhes do jogo:', error);
+            console.error('[DEBUG] Erro final ao carregar detalhes do jogo:', error);
             gameDetailContainer.innerHTML = `<p>Erro ao carregar detalhes: ${error}</p>`;
         });
 
@@ -63,13 +74,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${galleryHTML}
                 </div>
                 <div class="right-column">
-                    <div class="comments-section">
-                        <h2>Comentários</h2>
-                        <div id="comments-list"></div>
-                        <form id="comment-form">
-                            <textarea id="comment-text" placeholder="Deixe seu comentário..." required></textarea>
-                            <button type="submit">Enviar</button>
-                        </form>
+                    <div class="comments-and-ad-section">
+                        <div class="comments-section">
+                            <h2>Comentários</h2>
+                            <div id="comments-list"></div>
+                            <form id="comment-form">
+                                <textarea id="comment-text" placeholder="Deixe seu comentário..." required></textarea>
+                                <button type="submit">Enviar</button>
+                            </form>
+                        </div>
+                        <div class="ad-container-sidebar">
+                            <!-- Início do Bloco de Anúncio - Sidebar -->
+                            <ins class="adsbygoogle"
+                                 style="display:block"
+                                 data-ad-client="ca-pub-9983236555901620"
+                                 data-ad-slot="<!-- INSIRA SEU ID DE SLOT DE ANÚNCIO AQUI -->"
+                                 data-ad-format="auto"
+                                 data-full-width-responsive="true"></ins>
+                            <script>
+                                 (adsbygoogle = window.adsbygoogle || []).push({});
+                            </script>
+                            <!-- Fim do Bloco de Anúncio -->
+                        </div>
                     </div>
                 </div>
             </div>
