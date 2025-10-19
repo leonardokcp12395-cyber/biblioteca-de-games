@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gamesListBody.innerHTML = '<tr><td colspan="3"><div class="loader"></div></td></tr>'; // Mostra o loader na tabela
         try {
             const response = await fetch('/api/games');
-            const games = await response.json();
+            const result = await response.json();
+            const games = result.games; // Acessa o array de jogos dentro do objeto de resposta
             gamesListBody.innerHTML = ''; // Limpa a tabela
             games.forEach(game => {
                 const row = document.createElement('tr');
@@ -87,17 +88,19 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleAddSubmit(e) {
         e.preventDefault();
 
+        const coverImage = addGameForm.querySelector('#coverImage').files[0];
+        if (!coverImage) {
+            alert('A imagem de capa é obrigatória.');
+            return;
+        }
+
         // Cria o FormData e anexa os arquivos manualmente
         const formData = new FormData();
         formData.append('title', addGameForm.querySelector('#title').value);
         formData.append('genre', addGameForm.querySelector('#genre').value);
         formData.append('description', addGameForm.querySelector('#description').value);
         formData.append('downloadLink', addGameForm.querySelector('#downloadLink').value);
-
-        const coverImage = addGameForm.querySelector('#coverImage').files[0];
-        if (coverImage) {
-            formData.append('coverImage', coverImage);
-        }
+        formData.append('coverImage', coverImage);
 
         const gameImages = addGameForm.querySelector('#gameImages').files;
         for (let i = 0; i < gameImages.length; i++) {
