@@ -1,10 +1,11 @@
 {
   "name": "app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Uma simples aplicação web para criar e gerenciar uma biblioteca de jogos pessoal. A aplicação possui uma interface para usuários visualizarem e filtrarem os jogos, e uma área de administração para adicionar novos jogos à biblioteca.",
   "main": "admin.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,11 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.2"
-  }
+    "multer": "^2.0.2",
+    "playwright": "^1.56.1"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {}
 }

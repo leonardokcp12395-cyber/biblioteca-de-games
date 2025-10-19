@@ -1,130 +1,175 @@
-/* Estilos Gerais do Corpo */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
+/* --- 1. FUNDAÇÃO E VARIÁVEIS GLOBAIS --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+    --color-background: #121212;
+    --color-surface: #1e1e1e;
+    --color-primary: #00aaff;
+    --color-text-primary: #e0e0e0;
+    --color-text-secondary: #a0a0a0;
+    --color-border: #333333;
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+    --color-favorite: #e74c3c;
+    --color-star: #f5c518;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
 }
 
-/* Container Principal */
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+}
+
 main {
     width: 90%;
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
+    max-width: 1400px;
+    margin: 40px auto;
 }
 
-/* Cabeçalho */
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+    color: #4ddbff;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button {
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    padding: 10px 15px;
+    font-weight: 600;
+}
+
+/* Loader com novas cores */
+.loader {
+    border: 5px solid var(--color-border);
+    border-top: 5px solid var(--color-primary);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 40px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- 2. CABEÇALHO E NAVEGAÇÃO --- */
 header {
-    background: #333;
-    color: #fff;
+    background-color: var(--color-surface);
     padding: 1rem 0;
-    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header .header-container {
+    width: 90%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 header h1 {
-    margin: 0;
+    font-size: 1.5rem;
 }
 
-/* Formulário do Admin */
-#add-game-form {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+header h1 a {
+    color: var(--color-text-primary);
+    text-decoration: none;
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group input[type="text"],
-.form-group input[type="url"],
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box; /* Garante que o padding não afete a largura */
-}
-
-button[type="submit"] {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-button[type="submit"]:hover {
-    background: #218838;
-}
-
-/* Filtros */
-.filters {
+.nav-links {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    gap: 20px;
+    align-items: center;
 }
 
-.filters input[type="search"],
-.filters select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.nav-links a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
 }
 
-/* Lista de Jogos */
+.nav-links a:hover {
+    color: var(--color-primary);
+}
+
+#logout-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+#logout-btn:hover {
+    color: var(--color-primary);
+}
+
+/* --- 3. CARDS DE JOGO --- */
+
 #game-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    gap: 25px;
 }
 
 .game-card {
-    background: #fff;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Garante que a imagem com borda arredondada não vaze */
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 170, 255, 0.15);
 }
 
 .game-card a {
     text-decoration: none;
     color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .game-card .cover-image {
     width: 100%;
-    height: 150px;
+    height: 160px;
     object-fit: cover;
-    border-radius: 8px 8px 0 0;
-}
-
-.game-card h2 {
-    margin-top: 0;
-    padding: 0 20px;
-    font-size: 1.5rem;
-    color: #333;
 }
 
 .game-card .game-card-content {
@@ -134,215 +179,162 @@ button[type="submit"]:hover {
     flex-grow: 1;
 }
 
+.game-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: var(--color-text-primary);
+}
+
 .game-card .genre {
-    font-style: italic;
-    color: #666;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
     margin-bottom: 10px;
 }
 
 .game-card p {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
     flex-grow: 1;
-    margin-bottom: 15px;
 }
 
-/* --- Página de Detalhes do Jogo --- */
+/* --- 4. PÁGINA DE DETALHES DO JOGO --- */
 
-header .back-link {
-    display: block;
-    max-width: 1200px;
-    margin: 0 auto 10px;
-    color: #fff;
-    text-decoration: none;
-    font-size: 16px;
-}
-
-#game-detail-container {
-    background-color: #fff;
-    padding: 20px;
+.game-detail-header {
+    padding: 60px 40px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 30px;
 }
 
-.game-header {
+.game-detail-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(18, 18, 18, 1) 10%, rgba(18, 18, 18, 0.5) 70%);
+}
+
+.game-detail-header-content {
+    position: relative;
+    z-index: 2;
+    max-width: 70%;
+}
+
+.game-detail-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.game-detail-header .genre {
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+}
+
+.game-detail-actions {
     display: flex;
+    align-items: center;
     gap: 20px;
-    margin-bottom: 20px;
 }
 
-.game-header .cover {
-    max-width: 300px;
-    height: auto;
+.download-btn {
+    background-color: var(--color-primary);
+    color: #fff;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+}
+.download-btn:hover {
+    opacity: 0.9;
+}
+
+.favorite-btn {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+    color: var(--color-text-secondary);
+}
+.favorite-btn.favorited {
+    color: var(--color-favorite);
+    border-color: var(--color-favorite);
+}
+
+
+.game-detail-main {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+}
+
+.game-detail-main .left-column {
+    background-color: var(--color-surface);
+    padding: 25px;
     border-radius: 8px;
 }
 
-.game-header .info h1 {
-    margin-top: 0;
+.game-detail-main .right-column {
+    background-color: var(--color-surface);
+    padding: 25px;
+    border-radius: 8px;
 }
 
-.game-header .info .genre {
-    font-style: italic;
-    color: #666;
-    margin-bottom: 20px;
+.game-gallery, .comments-section, .description-section {
+    margin-bottom: 30px;
+}
+.game-gallery:last-child, .comments-section:last-child, .description-section:last-child {
+    margin-bottom: 0;
 }
 
-.game-header .info .download-btn {
-    display: inline-block;
-    padding: 12px 25px;
-    background: #007bff;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-.game-gallery h2 {
-    border-bottom: 2px solid #eee;
+.game-gallery h2, .comments-section h2, .description-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
     padding-bottom: 10px;
-    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .gallery-images {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
 }
 
 .gallery-images img {
     width: 100%;
-    height: 150px;
+    height: 100px;
     object-fit: cover;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* --- Seção de Comentários --- */
-.comments-section {
-    margin-top: 30px;
-}
-
-.comments-section h2 {
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-#comment-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-#comment-form textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    resize: vertical;
-    min-height: 80px;
-}
-
-#comment-form button {
-    align-self: flex-end;
-    padding: 10px 20px;
-    background: #28a745;
-    color: #fff;
-    border: none;
     border-radius: 4px;
     cursor: pointer;
+    transition: transform 0.2s;
+}
+.gallery-images img:hover {
+    transform: scale(1.05);
 }
 
 .comment {
-    background: #f9f9f9;
+    background: var(--color-background);
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 4px;
     margin-bottom: 10px;
-    border: 1px solid #eee;
+    border-left: 3px solid var(--color-primary);
 }
 
 .comment p {
-    margin: 0;
+    color: var(--color-text-secondary);
 }
-
 .comment .comment-date {
     font-size: 0.8em;
-    color: #999;
+    color: #666;
     margin-top: 5px;
-    text-align: right;
 }
 
-/* --- Páginas de Autenticação --- */
-.auth-container {
-    max-width: 400px;
-    margin: 40px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-.auth-container h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.auth-container p {
-    text-align: center;
-    margin-top: 15px;
-}
-
-/* --- Painel do Admin Melhorado --- */
-.admin-section {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
-}
-
-#manage-games-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-#manage-games-table th,
-#manage-games-table td {
-    padding: 12px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-#manage-games-table th {
-    background-color: #f4f4f4;
-}
-
-#manage-games-table img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-#manage-games-table .actions a,
-#manage-games-table .actions button {
-    margin-right: 5px;
-    padding: 5px 10px;
-    text-decoration: none;
-    border-radius: 4px;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-#manage-games-table .actions .edit-btn {
-    background-color: #007bff;
-}
-
-#manage-games-table .actions .delete-btn {
-    background-color: #dc3545;
-}
-
-/* --- Sistema de Avaliação (Estrelas) --- */
 .rating-section {
     display: flex;
     align-items: center;
@@ -350,127 +342,186 @@ header .back-link {
     margin-bottom: 20px;
 }
 
-.star-rating {
-    display: inline-block;
-}
-
 .star-rating .star {
     font-size: 24px;
-    color: #ddd;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .star-rating .star.filled,
 .star-rating .star:hover,
-.star-rating .star:hover ~ .star {
-    color: #f5c518;
-}
-
-/* Para garantir que o hover reverso funcione */
 .star-rating:hover .star {
-    color: #f5c518;
+    color: var(--color-star);
 }
 
-.star-rating .star:hover ~ .star {
-    color: #ddd;
+.star-rating:hover .star:hover ~ .star {
+    color: var(--color-text-secondary);
 }
 
 .average-rating {
     font-size: 1.2em;
     font-weight: bold;
+    color: var(--color-star);
 }
 
-/* --- Botão de Favorito --- */
-.favorite-btn {
-    background: none;
-    border: 2px solid #ddd;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    font-size: 20px;
-    color: #ddd;
-    transition: all 0.2s;
-    margin-left: auto; /* Alinha à direita */
+/* --- 5. FORMULÁRIOS E ELEMENTOS DE UI --- */
+
+.admin-section {
+    background-color: var(--color-surface);
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
 }
 
-.favorite-btn.favorited {
-    color: #e74c3c;
-    border-color: #e74c3c;
+.form-group {
+    margin-bottom: 20px;
 }
 
-/* --- Lightbox da Galeria --- */
-.lightbox {
-    display: none; /* Oculto por padrão */
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+input[type="text"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+select,
+textarea {
     width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.8);
-    justify-content: center;
-    align-items: center;
+    padding: 12px;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.lightbox-content {
-    max-width: 90%;
-    max-height: 80%;
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2);
 }
 
-.lightbox .close-btn {
-    position: absolute;
-    top: 20px;
-    right: 35px;
+textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Botão principal de formulário */
+form button[type="submit"] {
+    background-color: var(--color-primary);
     color: #fff;
-    font-size: 40px;
-    font-weight: bold;
+    padding: 12px 20px;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+form button[type="submit"]:hover {
+    opacity: 0.9;
+}
+
+/* Filtros */
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: var(--color-surface);
+    border-radius: 8px;
+}
+
+/* Tabela do Admin */
+#manage-games-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+#manage-games-table th,
+#manage-games-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+#manage-games-table th {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+#manage-games-table img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+#manage-games-table .actions a,
+#manage-games-table .actions button {
+    margin-right: 10px;
+    padding: 6px 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    color: white;
+    border: none;
     cursor: pointer;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+}
+#manage-games-table .actions a:hover,
+#manage-games-table .actions button:hover {
+    opacity: 0.8;
 }
 
-/* --- Indicador de Carregamento (Spinner) --- */
-.loader {
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
+#manage-games-table .actions .edit-btn {
+    background-color: var(--color-primary);
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+#manage-games-table .actions .delete-btn {
+    background-color: var(--color-danger);
 }
 
-/* --- Controles de Paginação --- */
+/* Paginação */
 .pagination-controls {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 30px;
-    gap: 5px;
+    gap: 8px;
 }
 
-.pagination-controls button,
-.pagination-controls .page-number {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    background-color: #fff;
-    cursor: pointer;
-    border-radius: 4px;
+.pagination-controls button {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .pagination-controls button:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
-    background-color: #f9f9f9;
-    color: #ccc;
 }
 
-.pagination-controls .page-number.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+.pagination-controls button.active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+/* --- 6. RODAPÉ --- */
+footer {
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+    color: var(--color-text-secondary);
 }
