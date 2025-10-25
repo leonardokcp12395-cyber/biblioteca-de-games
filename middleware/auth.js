@@ -2,13 +2,15 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.schema');
 
 module.exports = async function (req, res, next) {
-    // Pega o token do header
-    const token = req.header('x-auth-token');
+    // Pega o token do header 'Authorization' (ex: "Bearer TOKEN")
+    const authHeader = req.header('Authorization');
 
-    // Se não houver token
-    if (!token) {
-        return res.status(401).json({ message: 'Acesso negado. Nenhum token fornecido.' });
+    // Se não houver header ou não começar com "Bearer "
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Acesso negado. Token mal formatado ou ausente.' });
     }
+
+    const token = authHeader.split(' ')[1]; // Extrai o token do "Bearer TOKEN"
 
     try {
         // Verifica o token
