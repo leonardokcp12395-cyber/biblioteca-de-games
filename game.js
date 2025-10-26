@@ -10,30 +10,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    console.log(`[DEBUG] ID do jogo pego da URL: ${gameId}`);
     gameDetailContainer.innerHTML = '<div class="loader"></div>';
 
-    console.log(`[DEBUG] Fazendo fetch para /api/games/${gameId}`);
     fetch(`/api/games/${gameId}`)
-        .then(response => {
-            console.log(`[DEBUG] Resposta do fetch recebida. Status: ${response.status}`);
-            if (!response.ok) {
-                return response.text().then(text => Promise.reject(`Erro ${response.status}: ${text}`));
-            }
-            return response.json();
-        })
-        .then(game => {
-            console.log('[DEBUG] Jogo recebido com sucesso:', game);
-            displayGameDetails(game);
-        })
+        .then(response => response.ok ? response.json() : Promise.reject('Jogo não encontrado.'))
+        .then(game => displayGameDetails(game))
         .catch(error => {
-            console.error('[DEBUG] Erro final ao carregar detalhes do jogo:', error);
+            console.error('Erro ao carregar detalhes do jogo:', error);
             gameDetailContainer.innerHTML = `<p>Erro ao carregar detalhes: ${error}</p>`;
         });
 
     const displayGameDetails = (game) => {
         gameTitleHeader.textContent = game.title;
-        document.title = game.title; // Atualiza o título da aba do navegador
+        document.title = game.title;
 
         const averageRating = game.ratings.length > 0
             ? (game.ratings.reduce((acc, r) => acc + r.rating, 0) / game.ratings.length).toFixed(1)
@@ -84,17 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             </form>
                         </div>
                         <div class="ad-container-sidebar">
-                            <!-- Início do Bloco de Anúncio - Sidebar -->
                             <ins class="adsbygoogle"
                                  style="display:block"
                                  data-ad-client="ca-pub-9983236555901620"
-                                 data-ad-slot="<!-- INSIRA SEU ID DE SLOT DE ANÚNCIO AQUI -->"
+                                 data-ad-slot="1927617389"
                                  data-ad-format="auto"
                                  data-full-width-responsive="true"></ins>
                             <script>
                                  (adsbygoogle = window.adsbygoogle || []).push({});
                             </script>
-                            <!-- Fim do Bloco de Anúncio -->
                         </div>
                     </div>
                 </div>
@@ -129,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleCommentSubmit = (gameId, commentsListContainer) => {
         const textArea = document.getElementById('comment-text');
         const text = textArea.value;
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('firebaseIdToken');
 
         if (!token) {
             alert('Você precisa estar logado para comentar.');
@@ -168,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleRatingSubmit = (gameId, rating) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('firebaseIdToken');
         if (!token) {
             alert('Você precisa estar logado para avaliar um jogo.');
             return;
@@ -189,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setupFavoriteButton = (gameId) => {
         const favBtn = document.getElementById('favorite-btn');
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('firebaseIdToken');
 
         if (!token) {
             favBtn.style.display = 'none';
@@ -199,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/users/favorites/ids', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(res => res.json())
             .then(data => {
-                if (data.favorites.includes(parseInt(gameId))) {
+                if (data.favorites.includes(gameId)) {
                     favBtn.classList.add('favorited');
                 }
             });
@@ -210,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             .then(res => res.json())
-            .then(data => favBtn.classList.toggle('favorited', data.includes(parseInt(gameId))))
+            .then(data => favBtn.classList.toggle('favorited', data.includes(gameId)))
             .catch(err => console.error("Erro ao favoritar:", err));
         });
     };

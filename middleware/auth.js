@@ -1,32 +1,26 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user.schema');
+const admin = require('../firebase-admin-config');
 
-module.exports = async function (req, res, next) {
-    // Pega o token do header 'Authorization' (ex: "Bearer TOKEN")
-    const authHeader = req.header('Authorization');
+async function authMiddleware(req, res, next) {
+    const authHeader = req.headers.authorization;
 
-    // Se não houver header ou não começar com "Bearer "
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Acesso negado. Token mal formatado ou ausente.' });
+        return res.status(401).send('Acesso não autorizado: Token não fornecido ou mal formatado.');
     }
 
-    const token = authHeader.split(' ')[1]; // Extrai o token do "Bearer TOKEN"
+    const idToken = authHeader.split('Bearer ')[1];
 
     try {
-        // Verifica o token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Adiciona o usuário do payload à requisição
-        req.user = decoded.user;
-
-        // Confirma que o usuário ainda existe no banco de dados
-        const userExists = await User.findById(req.user.id);
-        if (!userExists) {
-            return res.status(401).json({ message: 'Token inválido - usuário não encontrado.' });
-        }
-
-        next(); // Passa para a próxima função de middleware/rota
-    } catch (err) {
-        res.status(401).json({ message: 'Token inválido.' });
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        // Cria um objeto de usuário padronizado para ser usado nas rotas
+        req.user = {
+            id: decodedToken.uid,
+            email: decodedToken.email
+        };
+        next();
+    } catch (error) {
+        console.error('Erro ao verificar o token do Firebase:', error);
+        return res.status(403).send('Acesso não autorizado: Token inválido ou expirado.');
     }
-};
+}
+
+module.exports = authMiddleware;

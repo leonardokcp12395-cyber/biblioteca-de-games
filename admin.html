@@ -51,6 +51,22 @@
         </div>
 
         <div class="admin-section">
+            <h2>Solicitações de Jogos</h2>
+            <table id="requests-table">
+                <thead>
+                    <tr>
+                        <th>Nome do Jogo Solicitado</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="requests-list-body">
+                    <!-- A lista de solicitações será inserida aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="admin-section">
             <h2>Gerenciar Jogos Existentes</h2>
             <table id="manage-games-table">
                 <thead>
@@ -72,6 +88,6 @@
     </footer>
 
     <script src="admin.js"></script>
-    <script src="shared.js"></script>
+    <script type="module" src="shared.js"></script>
 </body>
 </html>

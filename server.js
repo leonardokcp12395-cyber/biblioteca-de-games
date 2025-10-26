@@ -16,9 +16,8 @@ mongoose.connect(process.env.MONGO_URI)
         process.exit(1); // Encerra o processo se não conseguir conectar
     });
 
-// --- Modelos ---
-const Game = require('./models/game.schema');
-const User = require('./models/user.schema');
+// --- Inicialização do Firebase Admin ---
+require('./firebase-admin-config');
 
 // --- Middleware ---
 app.use(cors());
@@ -33,13 +32,13 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 }
 
 // --- Rotas ---
-const authRoutes = require('./routes/auth');
 const gameRoutes = require('./routes/games');
-const favoriteRoutes = require('./routes/favorites');
+const adminRoutes = require('./routes/admin');
+const requestRoutes = require('./routes/requests');
 
-app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
-app.use('/api/users', favoriteRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/requests', requestRoutes);
 
 // --- Rota de Teste ---
 app.get('/api/health', (req, res) => {

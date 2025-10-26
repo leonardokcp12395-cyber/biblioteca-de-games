@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('authToken'); // Correct key
+    const token = localStorage.getItem('adminAuthToken');
     const onAdminPage = window.location.pathname.endsWith('admin.html') || window.location.pathname.endsWith('edit-game.html');
 
     if (!token && onAdminPage) {
@@ -12,10 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const addGameForm = document.getElementById('add-game-form');
     const editGameForm = document.getElementById('edit-game-form');
     const gamesListBody = document.getElementById('games-list-body');
+    const requestsListBody = document.getElementById('requests-list-body');
 
-    // Se estiver na página de admin, carrega a lista de jogos
+    // Se estiver na página de admin, carrega a lista de jogos e solicitações
     if (gamesListBody) {
         loadGames();
+        loadRequests();
     }
 
     // Se estiver na página de edição, carrega os dados do jogo
@@ -88,35 +90,26 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleAddSubmit(e) {
         e.preventDefault();
 
-        const coverImage = addGameForm.querySelector('#coverImage').files[0];
-        if (!coverImage) {
-            alert('A imagem de capa é obrigatória.');
-            return;
-        }
-
-        // Cria o FormData e anexa os arquivos manualmente
-        const formData = new FormData();
-        formData.append('title', addGameForm.querySelector('#title').value);
-        formData.append('genre', addGameForm.querySelector('#genre').value);
-        formData.append('description', addGameForm.querySelector('#description').value);
-        formData.append('downloadLink', addGameForm.querySelector('#downloadLink').value);
-        formData.append('coverImage', coverImage);
-
-        const gameImages = addGameForm.querySelector('#gameImages').files;
-        for (let i = 0; i < gameImages.length; i++) {
-            formData.append('gameImages', gameImages[i]);
-        }
+        const gameData = {
+            title: addGameForm.querySelector('#title').value,
+            genre: addGameForm.querySelector('#genre').value,
+            description: addGameForm.querySelector('#description').value,
+            downloadLink: addGameForm.querySelector('#downloadLink').value,
+        };
 
         try {
             const response = await fetch('/api/games', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(gameData)
             });
             if (!response.ok) throw new Error(await response.text());
             alert('Jogo adicionado com sucesso!');
             addGameForm.reset();
-            loadGames(); // Recarrega a lista
+            setTimeout(loadGames, 500); // Adiciona um pequeno atraso antes de recarregar
         } catch (error) {
             alert(`Erro ao adicionar jogo: ${error.message}`);
         }
@@ -164,6 +157,55 @@ document.addEventListener('DOMContentLoaded', () => {
             loadGames(); // Recarrega a lista
         } catch (error) {
             alert(`Erro ao excluir jogo: ${error.message}`);
+        }
+    }
+
+    async function loadRequests() {
+        if (!requestsListBody) return;
+        requestsListBody.innerHTML = '<tr><td colspan="3"><div class="loader"></div></td></tr>';
+        try {
+            const response = await fetch('/api/requests', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const requests = await response.json();
+            requestsListBody.innerHTML = '';
+            requests.forEach(request => {
+                const row = document.createElement('tr');
+                const requestDate = new Date(request.requestedAt).toLocaleDateString('pt-BR');
+                row.innerHTML = `
+                    <td>${request.gameName}</td>
+                    <td>${requestDate}</td>
+                    <td class="actions">
+                        <button class="approve-btn" data-id="${request._id}">Adicionado</button>
+                        <button class="reject-btn" data-id="${request._id}">Rejeitar</button>
+                    </td>
+                `;
+                requestsListBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const requestId = e.target.dataset.id;
+                    handleRequestAction(requestId);
+                });
+            });
+        } catch (error) {
+            console.error('Erro ao carregar solicitações:', error);
+            requestsListBody.innerHTML = '<tr><td colspan="3">Erro ao carregar solicitações.</td></tr>';
+        }
+    }
+
+    async function handleRequestAction(id) {
+        if (!confirm('Tem certeza que deseja processar esta solicitação?')) return;
+        try {
+            await fetch(`/api/requests/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('Solicitação processada com sucesso!');
+            loadRequests(); // Recarrega a lista de solicitações
+        } catch (error) {
+            alert(`Erro ao processar solicitação: ${error.message}`);
         }
     }
 });

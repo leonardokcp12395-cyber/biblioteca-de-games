@@ -109,4 +109,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // Carga inicial
     loadGames(1);
     populateGenreFilter();
+
+    // --- Lógica do Modal de Sugestão ---
+    const suggestModal = document.getElementById('suggest-modal');
+    const suggestBtn = document.getElementById('suggest-game-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const suggestForm = document.getElementById('suggest-form');
+
+    suggestBtn.onclick = () => {
+        suggestModal.style.display = 'block';
+    }
+    closeModalBtn.onclick = () => {
+        suggestModal.style.display = 'none';
+    }
+    window.onclick = (event) => {
+        if (event.target == suggestModal) {
+            suggestModal.style.display = 'none';
+        }
+    }
+
+    suggestForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const gameName = suggestForm.querySelector('#game-name').value;
+        if (!gameName) return;
+
+        try {
+            const response = await fetch('/api/requests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameName })
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao enviar sugestão.');
+            }
+
+            alert('Obrigado pela sua sugestão! Vamos analisá-la em breve.');
+            suggestModal.style.display = 'none';
+            suggestForm.reset();
+
+        } catch (error) {
+            alert(`Erro: ${error.message}`);
+        }
+    });
 });

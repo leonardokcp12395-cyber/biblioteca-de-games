@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gameListContainer = document.getElementById('game-list');
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('firebaseIdToken');
 
     if (!token) {
         gameListContainer.innerHTML = '<p>Você precisa estar logado para ver seus favoritos. <a href="login.html">Faça login</a>.</p>';
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const shortDescription = game.description.length > 100 ? game.description.substring(0, 100) + '...' : game.description;
 
             gameCard.innerHTML = `
-                <a href="game.html?id=${game.id}">
+                <a href="game.html?id=${game._id}">
                     <img src="${game.coverImage}" alt="Capa do jogo ${game.title}" class="cover-image">
                     <div class="game-card-content">
                         <h2>${game.title}</h2>

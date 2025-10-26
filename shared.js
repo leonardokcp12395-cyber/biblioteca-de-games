@@ -2,27 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinksContainer = document.getElementById('nav-links');
     if (!navLinksContainer) return;
 
-    const token = localStorage.getItem('authToken');
-
-    if (token) {
-        // Usuário está logado
-        navLinksContainer.innerHTML = `
-            <a href="favorites.html">Meus Favoritos</a>
-            <a href="admin.html">Painel Admin</a>
-            <button id="logout-btn">Logout</button>
-        `;
-
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.removeItem('authToken');
-            alert('Você foi desconectado.');
-            window.location.href = 'index.html';
-        });
-
-    } else {
-        // Usuário não está logado
-        navLinksContainer.innerHTML = `
-            <a href="login.html">Login</a>
-            <a href="register.html">Registrar</a>
-        `;
-    }
+    // Como não há mais login de usuário, a navegação é sempre a mesma.
+    // O link para o painel de admin não será exibido aqui para segurança.
+    // O admin acessará sua página de login por uma URL direta.
+    navLinksContainer.innerHTML = `
+        <a href="index.html">Início</a>
+        <!-- Outros links públicos podem ser adicionados aqui no futuro -->
+    `;
 });
