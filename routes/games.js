@@ -2,10 +2,33 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const Game = require('../models/game.schema');
-const adminAuth = require('../middleware/adminAuth'); // Usa o novo middleware
+const adminAuth = require('../middleware/adminAuth');
 
 const router = express.Router();
+const GAMES_FILE = path.join(__dirname, '..', 'games.json');
+
+// Função auxiliar para ler jogos
+const readGames = (callback) => {
+    fs.readFile(GAMES_FILE, 'utf8', (err, data) => {
+        if (err) {
+            if (err.code === 'ENOENT') { // Se o arquivo não existir, retorna um array vazio
+                return callback(null, []);
+            }
+            return callback(err);
+        }
+        try {
+            const games = JSON.parse(data);
+            callback(null, games);
+        } catch (parseErr) {
+            callback(parseErr);
+        }
+    });
+};
+
+// Função auxiliar para escrever jogos
+const writeGames = (games, callback) => {
+    fs.writeFile(GAMES_FILE, JSON.stringify(games, null, 2), 'utf8', callback);
+};
 
 // Configuração do Multer
 const storage = multer.diskStorage({
@@ -24,88 +47,109 @@ const upload = multer({ storage: storage });
 
 // --- ROTAS PÚBLICAS ---
 
-// GET /api/games - Obter todos os jogos
-router.get('/', async (req, res) => {
-    try {
-        const page = parseInt(req.query.page, 10) || 1;
-        const limit = parseInt(req.query.limit, 10) || 12;
+// GET /api/games
+router.get('/', (req, res) => {
+    readGames((err, games) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de jogos.' });
+
         const { search, genre } = req.query;
-        const query = {};
-        if (search) query.title = { $regex: search, $options: 'i' };
-        if (genre) query.genre = genre;
-        const games = await Game.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
-        const totalGames = await Game.countDocuments(query);
-        const totalPages = Math.ceil(totalGames / limit);
-        res.json({ games, totalPages, currentPage: page });
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar jogos.', error });
-    }
+        let filteredGames = games;
+
+        if (search) {
+            filteredGames = filteredGames.filter(g => g.title.toLowerCase().includes(search.toLowerCase()));
+        }
+        if (genre) {
+            filteredGames = filteredGames.filter(g => g.genre === genre);
+        }
+
+        res.json({ games: filteredGames }); // Simplificado para não ter paginação por enquanto
+    });
 });
 
-// GET /api/games/:id - Obter um jogo por ID
-router.get('/:id', async (req, res) => {
-    try {
-        const game = await Game.findById(req.params.id);
+// GET /api/games/:id
+router.get('/:id', (req, res) => {
+    readGames((err, games) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de jogos.' });
+        const game = games.find(g => g.id === parseInt(req.params.id, 10));
         if (!game) return res.status(404).json({ message: 'Jogo não encontrado.' });
         res.json(game);
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar o jogo.', error });
-    }
+    });
 });
-
 
 // --- ROTAS PROTEGIDAS (ADMIN) ---
 
-// POST /api/games - Adicionar um novo jogo
-router.post('/', adminAuth, upload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'gameImages', maxCount: 8 }]), async (req, res) => {
-    try {
+// POST /api/games
+router.post('/', adminAuth, upload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'gameImages', maxCount: 8 }]), (req, res) => {
+    readGames((err, games) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de jogos.' });
+
         const { title, genre, description, downloadLink } = req.body;
         if (!req.files || !req.files.coverImage) {
             return res.status(400).send('A imagem de capa é obrigatória.');
         }
-        const newGame = new Game({
+
+        const newGame = {
+            id: Date.now(), // ID numérico
             title,
             genre,
             description,
             downloadLink,
             coverImage: path.join('uploads', req.files.coverImage[0].filename),
             gameImages: req.files.gameImages ? req.files.gameImages.map(f => path.join('uploads', f.filename)) : [],
+        };
+
+        games.push(newGame);
+
+        writeGames(games, (writeErr) => {
+            if (writeErr) return res.status(500).json({ message: 'Erro ao salvar o novo jogo.' });
+            res.status(201).json(newGame);
         });
-        await newGame.save();
-        res.status(201).json(newGame);
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao adicionar o jogo.', error: error.message });
-    }
+    });
 });
 
-// PUT /api/games/:id - Atualizar um jogo
-router.put('/:id', adminAuth, async (req, res) => {
-    try {
+// PUT /api/games/:id
+router.put('/:id', adminAuth, (req, res) => {
+    readGames((err, games) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de jogos.' });
+
+        const gameId = parseInt(req.params.id, 10);
+        const gameIndex = games.findIndex(g => g.id === gameId);
+        if (gameIndex === -1) return res.status(404).json({ message: 'Jogo não encontrado.' });
+
         const { title, genre, description, downloadLink } = req.body;
-        const updatedGame = await Game.findByIdAndUpdate(req.params.id, { title, genre, description, downloadLink }, { new: true });
-        if (!updatedGame) return res.status(404).json({ message: 'Jogo não encontrado.' });
-        res.json(updatedGame);
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao atualizar o jogo.', error: error.message });
-    }
+        games[gameIndex] = { ...games[gameIndex], title, genre, description, downloadLink };
+
+        writeGames(games, (writeErr) => {
+            if (writeErr) return res.status(500).json({ message: 'Erro ao atualizar o jogo.' });
+            res.json(games[gameIndex]);
+        });
+    });
 });
 
-// DELETE /api/games/:id - Excluir um jogo
-router.delete('/:id', adminAuth, async (req, res) => {
-    try {
-        const deletedGame = await Game.findByIdAndDelete(req.params.id);
-        if (!deletedGame) return res.status(404).json({ message: 'Jogo não encontrado.' });
-        // Opcional: excluir arquivos de imagem do servidor
-        if (deletedGame.coverImage && fs.existsSync(deletedGame.coverImage)) fs.unlinkSync(deletedGame.coverImage);
-        if (deletedGame.gameImages) {
-            deletedGame.gameImages.forEach(imgPath => {
+// DELETE /api/games/:id
+router.delete('/:id', adminAuth, (req, res) => {
+    readGames((err, games) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de jogos.' });
+
+        const gameId = parseInt(req.params.id, 10);
+        const gameToDelete = games.find(g => g.id === gameId);
+        if (!gameToDelete) return res.status(404).json({ message: 'Jogo não encontrado.' });
+
+        // Exclui os arquivos de imagem
+        if (gameToDelete.coverImage && fs.existsSync(gameToDelete.coverImage)) fs.unlinkSync(gameToDelete.coverImage);
+        if (gameToDelete.gameImages) {
+            gameToDelete.gameImages.forEach(imgPath => {
                 if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
             });
         }
-        res.status(200).send('Jogo excluído com sucesso.');
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao excluir o jogo.', error });
-    }
+
+        const updatedGames = games.filter(g => g.id !== gameId);
+
+        writeGames(updatedGames, (writeErr) => {
+            if (writeErr) return res.status(500).json({ message: 'Erro ao excluir o jogo.' });
+            res.status(200).send('Jogo excluído com sucesso.');
+        });
+    });
 });
 
 module.exports = router;

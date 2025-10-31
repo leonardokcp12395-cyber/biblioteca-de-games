@@ -26,7 +26,6 @@
     "express": "^5.1.0",
     "firebase-admin": "^13.5.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.19.1",
     "multer": "^2.0.2",
     "playwright": "^1.56.1"
   },

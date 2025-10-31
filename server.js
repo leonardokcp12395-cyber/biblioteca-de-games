@@ -1,23 +1,15 @@
 require('dotenv').config(); // Carrega variáveis de ambiente do arquivo .env
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- Conexão com o Banco de Dados ---
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Conectado ao MongoDB com sucesso.'))
-    .catch(err => {
-        console.error('Erro ao conectar ao MongoDB:', err);
-        process.exit(1); // Encerra o processo se não conseguir conectar
-    });
+// O banco de dados foi removido, a conexão não é mais necessária.
 
-// --- Inicialização do Firebase Admin ---
-require('./firebase-admin-config');
+// Firebase foi removido.
 
 // --- Middleware ---
 app.use(cors());

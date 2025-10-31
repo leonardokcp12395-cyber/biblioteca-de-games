@@ -1,52 +1,90 @@
 const express = require('express');
-const Request = require('../models/request.schema');
+const path = require('path');
+const fs = require('fs');
 const adminAuth = require('../middleware/adminAuth');
 
 const router = express.Router();
+const REQUESTS_FILE = path.join(__dirname, '..', 'requests.json');
+
+// Função auxiliar para ler solicitações
+const readRequests = (callback) => {
+    fs.readFile(REQUESTS_FILE, 'utf8', (err, data) => {
+        if (err) {
+            if (err.code === 'ENOENT') {
+                return callback(null, []);
+            }
+            return callback(err);
+        }
+        try {
+            const requests = JSON.parse(data);
+            callback(null, requests);
+        } catch (parseErr) {
+            callback(parseErr);
+        }
+    });
+};
+
+// Função auxiliar para escrever solicitações
+const writeRequests = (requests, callback) => {
+    fs.writeFile(REQUESTS_FILE, JSON.stringify(requests, null, 2), 'utf8', callback);
+};
+
 
 // --- ROTA PÚBLICA ---
 
-// POST /api/requests - Cria uma nova solicitação de jogo
-router.post('/', async (req, res) => {
-    try {
+// POST /api/requests
+router.post('/', (req, res) => {
+    readRequests((err, requests) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de solicitações.' });
+
         const { gameName } = req.body;
         if (!gameName) {
             return res.status(400).json({ message: 'O nome do jogo é obrigatório.' });
         }
 
-        const newRequest = new Request({ gameName });
-        await newRequest.save();
+        const newRequest = {
+            id: Date.now(),
+            gameName,
+            requestedAt: new Date().toISOString()
+        };
 
-        res.status(201).json({ message: 'Solicitação recebida com sucesso!' });
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao processar a solicitação.' });
-    }
+        requests.push(newRequest);
+
+        writeRequests(requests, (writeErr) => {
+            if (writeErr) return res.status(500).json({ message: 'Erro ao salvar a solicitação.' });
+            res.status(201).json({ message: 'Solicitação recebida com sucesso!' });
+        });
+    });
 });
+
 
 // --- ROTAS DE ADMIN ---
 
-// GET /api/requests - Obtém todas as solicitações pendentes
-router.get('/', adminAuth, async (req, res) => {
-    try {
-        const requests = await Request.find({ status: 'pendente' }).sort({ requestedAt: 1 });
+// GET /api/requests
+router.get('/', adminAuth, (req, res) => {
+    readRequests((err, requests) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de solicitações.' });
         res.json(requests);
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar solicitações.' });
-    }
+    });
 });
 
-// DELETE /api/requests/:id - Exclui/processa uma solicitação
-router.delete('/:id', adminAuth, async (req, res) => {
-    try {
-        const deletedRequest = await Request.findByIdAndDelete(req.params.id);
-        if (!deletedRequest) {
+// DELETE /api/requests/:id
+router.delete('/:id', adminAuth, (req, res) => {
+    readRequests((err, requests) => {
+        if (err) return res.status(500).json({ message: 'Erro ao ler o arquivo de solicitações.' });
+
+        const requestId = parseInt(req.params.id, 10);
+        const updatedRequests = requests.filter(r => r.id !== requestId);
+
+        if (requests.length === updatedRequests.length) {
             return res.status(404).json({ message: 'Solicitação não encontrada.' });
         }
-        res.status(200).json({ message: 'Solicitação processada com sucesso.' });
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao processar a solicitação.' });
-    }
-});
 
+        writeRequests(updatedRequests, (writeErr) => {
+            if (writeErr) return res.status(500).json({ message: 'Erro ao processar a solicitação.' });
+            res.status(200).json({ message: 'Solicitação processada com sucesso.' });
+        });
+    });
+});
 
 module.exports = router;
